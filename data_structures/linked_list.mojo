@@ -146,14 +146,103 @@ struct LinkedListArray[T:FormattableCollectionElement]:
     alias val = 0
     alias next = 1
     alias null = -1
-    var list: List[(Int, Int)]
-    # var avalable: Deque[Int] 
-
+    var start: Int
+    var length: Int
+    var next_free: List[Int]
+    var list: List[(T, Int)]
+    
     fn __init__(out self):
-        self.list = List[(Int, Int)]()
-        available = Deque[Int]()
-        # self.avalable = 0
+        self.list = List[(T, Int)]()
+        self.start = 0
+        self.length = 0
+        self.next_free = List[Int]()
 
+    fn __getitem__(ref self, idx: Int) -> ref[self.list] T:
+        debug_assert(0 <= idx < self.length, 'index out of bounds')
+        var node = self.start
+        for _ in range(idx):
+            node = self.list[node][self.next]
+        return self.list[node][self.val]
+
+    fn __str__(self) -> String:
+        return String.write(self)
+    
+    fn write_to[W: Writer](self, mut writer: W):
+        writer.write('[')
+        var node = self.start
+        for _ in range(self.length):
+            writer.write(self.list[node][self.val], ',')
+            node = self.list[node][self.next] 
+        writer.write(']')
+
+
+    fn prepend(mut self, val: T):
+        if len(self.list) == 0:
+            self.list.append((val, self.null))
+        elif len(self.next_free) == 0:
+            self.list.append((val,self.start))
+            self.start = len(self.list) - 1
+        else:
+            var idx = self.next_free.pop()
+            self.list[idx] = (val, self.start)
+            self.start = idx
+        self.length += 1
+    
+    fn append(mut self, val: T):
+        var idx: Int
+        if len(self.next_free) == 0:
+            self.list.append((val,self.null))
+            idx = len(self.list) - 1
+        else:
+            idx = self.next_free.pop()
+            self.list[idx] = (val, self.null)
+
+        var node = self.start
+        for _ in range(self.length -1):
+            node = self.list[node][self.next]
+        self.list[node][self.next] = idx
+        
+        self.length += 1
+        
+    fn insert(mut self, val: T, owned idx: Int):
+        if idx >= self.length:
+            idx = self.length
+        elif idx < 0:
+            idx = 0
+        self.length += 1
+
+        if len(self.list) == 0:
+            self.list.append((val, self.null))
+            return 
+        
+        var node = self.start
+        for _ in range(idx):
+            node = self.list[node][self.next]
+
+        if len(self.next_free) == 0:
+            self.list.append(self.list[node])
+            self.list[node] = (val,len(self.list)-1)
+        else:
+            var free = self.next_free.pop()
+            var node_tup = self.list[node]
+            self.list[free] = node_tup
+            self.list[node] = (val, free)
+
+    
+            
+
+            
 def main():
-    pass
-    # VariadicList[Int](2,3,4)
+    var a = LinkedListArray[Int]()
+    a.prepend(3)
+    a.prepend(2)
+    a.prepend(1)
+    a.prepend(0)
+    print(a)
+    a.insert(7,2)
+    print(a)
+
+    print(a[2])
+    print(len(a.list))
+    a.append(15)
+    print(a)
