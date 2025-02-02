@@ -1,5 +1,6 @@
 from collections import Optional
 from memory import UnsafePointer
+from collections import Deque
 
 
 trait FormattableCollectionElement(Writable, StringableCollectionElement, EqualityComparable):
@@ -139,3 +140,20 @@ struct LinkedList[T: FormattableCollectionElement]:
             return count
         else:
             return count + self.tail[].count(val)
+
+@value
+struct LinkedListArray[T:FormattableCollectionElement]:
+    alias val = 0
+    alias next = 1
+    alias null = -1
+    var list: List[(Int, Int)]
+    # var avalable: Deque[Int] 
+
+    fn __init__(out self):
+        self.list = List[(Int, Int)]()
+        available = Deque[Int]()
+        # self.avalable = 0
+
+def main():
+    pass
+    # VariadicList[Int](2,3,4)
