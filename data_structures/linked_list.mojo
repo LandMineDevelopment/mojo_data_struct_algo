@@ -175,7 +175,6 @@ struct LinkedListArray[T:FormattableCollectionElement]:
             node = self.list[node][self.next] 
         writer.write(']')
 
-
     fn prepend(mut self, val: T):
         if len(self.list) == 0:
             self.list.append((val, self.null))
@@ -203,7 +202,7 @@ struct LinkedListArray[T:FormattableCollectionElement]:
         self.list[node][self.next] = idx
         
         self.length += 1
-        
+
     fn insert(mut self, val: T, owned idx: Int):
         if idx >= self.length:
             idx = self.length
@@ -228,10 +227,44 @@ struct LinkedListArray[T:FormattableCollectionElement]:
             self.list[free] = node_tup
             self.list[node] = (val, free)
 
-    
-            
+    fn pop_head(mut self) -> T:
+        debug_assert(self.length > 0)
+        self.next_free.append(self.start)
+        var popped = self.start
+        self.start = self.list[self.start][self.next]
+        self.length += -1
+        return self.list[popped][self.val]
 
-            
+    fn pop_end(mut self) -> T:
+        debug_assert(self.length > 0)
+        var node = self.start
+        for _ in range(self.length -2):
+            node = self.list[node][self.next]
+        var idx = self.list[node][self.next]
+        self.list[node][self.next] = self.null
+        self.length += -1
+        self.next_free.append(idx)
+        return self.list[idx][self.val]
+
+    fn remove(mut self, idx: Int) -> T:
+        debug_assert(self.length > 0)
+        if idx <= 0:
+            return self.pop_head()
+        if idx >= self.length:
+            return self.pop_end()
+
+        var node = self.start
+        for _ in range(idx - 1):
+            node = self.list[node][self.next]
+        var popped = self.list[node][self.next]
+        self.list[node][self.next] = self.list[popped][self.next]
+        self.next_free.append(popped)
+        self.length += -1
+        return self.list[popped][self.val]
+        
+
+           
+
 def main():
     var a = LinkedListArray[Int]()
     a.prepend(3)
@@ -245,4 +278,15 @@ def main():
     print(a[2])
     print(len(a.list))
     a.append(15)
+    print(a)
+    _ = a.pop_head()
+    print(a)
+    a.prepend(-2)
+    print(a)
+    b = a.pop_end()
+    print('b:', b)
+    print(a)
+    a.append(23)
+    print(a)
+    print(a.remove(2))
     print(a)
