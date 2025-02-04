@@ -186,6 +186,15 @@ struct LinkedListArray[T:FormattableCollectionElement]:
             self.list[idx] = (val, self.start)
             self.start = idx
         self.length += 1
+
+    
+    fn prepend(mut self, owned other: Self):
+        var tmp = Self()
+        for _ in range(other.length):
+            tmp.prepend(other.pop_head())
+        
+        for _ in range(tmp.length):
+            self.prepend(tmp.pop_head())
     
     fn append(mut self, val: T):
         var idx: Int
@@ -261,32 +270,43 @@ struct LinkedListArray[T:FormattableCollectionElement]:
         self.next_free.append(popped)
         self.length += -1
         return self.list[popped][self.val]
+    
+
         
 
            
 
 def main():
+    var b = LinkedListArray[Int]()
+    b.prepend(7)
+    b.prepend(6)
+    b.prepend(5)
+    b.prepend(4)
+    print('b:', b)
     var a = LinkedListArray[Int]()
     a.prepend(3)
     a.prepend(2)
     a.prepend(1)
     a.prepend(0)
-    print(a)
-    a.insert(7,2)
-    print(a)
+    print('a:',a)
+    b.prepend(a^)
+    print(b)
+    # a.insert(7,2)
+    # print(a)
 
-    print(a[2])
-    print(len(a.list))
-    a.append(15)
-    print(a)
-    _ = a.pop_head()
-    print(a)
-    a.prepend(-2)
-    print(a)
-    b = a.pop_end()
-    print('b:', b)
-    print(a)
-    a.append(23)
-    print(a)
-    print(a.remove(2))
-    print(a)
+    # print(a[2])
+    # print(len(a.list))
+    # a.append(15)
+    # print(a)
+    # _ = a.pop_head()
+    # print(a)
+    # a.prepend(-2)
+    # print(a)
+    # b = a.pop_end()
+    # print('b:', b)
+    # print(a)
+    # a.append(23)
+    # print(a)
+    # print(a.remove(2))
+    # print(a)
+
