@@ -211,6 +211,11 @@ struct LinkedListArray[T:FormattableCollectionElement]:
         self.list[node][self.next] = idx
         
         self.length += 1
+    
+    fn append(mut self, owned other: Self):
+        for _ in range(other.length):
+            self.append(other.pop_head())
+        
 
     fn insert(mut self, val: T, owned idx: Int):
         if idx >= self.length:
@@ -289,8 +294,8 @@ def main():
     a.prepend(1)
     a.prepend(0)
     print('a:',a)
-    b.prepend(a^)
-    print(b)
+    a.append(b^)
+    print(a)
     # a.insert(7,2)
     # print(a)
 
