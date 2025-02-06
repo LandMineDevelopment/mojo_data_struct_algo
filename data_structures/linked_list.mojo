@@ -175,6 +175,20 @@ struct LinkedListArray[T:FormattableCollectionElement]:
             node = self.list[node][self.next] 
         writer.write(']')
 
+    fn reverse(mut self):
+        var next_node = self.list[self.start][self.next]
+        var prior = self.start
+        self.list[self.start][self.next] = -1
+        var tmp_n = next_node 
+        var tmp_p = prior
+        for _ in range(self.length - 1):
+            tmp_p = prior 
+            tmp_n = next_node
+            prior = next_node
+            next_node = self.list[tmp_n][self.next]
+            self.list[tmp_n][self.next] = tmp_p 
+        self.start = tmp_n 
+
     fn prepend(mut self, val: T):
         if len(self.list) == 0:
             self.list.append((val, self.null))
@@ -186,15 +200,11 @@ struct LinkedListArray[T:FormattableCollectionElement]:
             self.list[idx] = (val, self.start)
             self.start = idx
         self.length += 1
-
-    
+   
     fn prepend(mut self, owned other: Self):
-        var tmp = Self()
+        other.reverse() 
         for _ in range(other.length):
-            tmp.prepend(other.pop_head())
-        
-        for _ in range(tmp.length):
-            self.prepend(tmp.pop_head())
+            self.prepend(other.pop_head())
     
     fn append(mut self, val: T):
         var idx: Int
@@ -213,14 +223,10 @@ struct LinkedListArray[T:FormattableCollectionElement]:
         self.length += 1
     
     fn append(mut self, owned other: Self):
-        var tmp = Self()
-        for _ in range(self.length):
-            tmp.prepend(self.pop_head())
-
+        self.reverse()
+        other.reverse()
         self.prepend(other)
-        
-        for _ in range(tmp.length):
-            self.prepend(tmp.pop_head()) 
+        self.reverse() 
 
     fn insert(mut self, val: T, owned idx: Int):
         if idx >= self.length:
@@ -300,7 +306,9 @@ def main():
     a.prepend(0)
     print('a:',a)
     a.append(b^)
-    print(a)
+    print('a.app(b):', a)
+    a.reverse()
+    print('a.rev():', a)
     # a.insert(7,2)
     # print(a)
 
