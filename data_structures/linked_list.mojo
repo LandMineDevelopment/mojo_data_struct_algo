@@ -213,9 +213,14 @@ struct LinkedListArray[T:FormattableCollectionElement]:
         self.length += 1
     
     fn append(mut self, owned other: Self):
-        for _ in range(other.length):
-            self.append(other.pop_head())
+        var tmp = Self()
+        for _ in range(self.length):
+            tmp.prepend(self.pop_head())
+
+        self.prepend(other)
         
+        for _ in range(tmp.length):
+            self.prepend(tmp.pop_head()) 
 
     fn insert(mut self, val: T, owned idx: Int):
         if idx >= self.length:
