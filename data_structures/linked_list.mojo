@@ -59,13 +59,13 @@ struct LinkedList[T: FormattableCollectionElement]:
                 writer.write(', ', 'None')
         writer.write(']')
     
-    fn concat(mut self, owned val: LinkedList[T]):
+    fn append(mut self, owned val: LinkedList[T]):
         if not self.tail:
             return
         if not self.tail[][0]:
             self.tail.init_pointee_move(val^)
         else:
-            self.tail[].concat(val^)
+            self.tail[].append(val^)
 
     fn append(inout self, owned val: T):
         if not self.tail:
@@ -79,24 +79,24 @@ struct LinkedList[T: FormattableCollectionElement]:
     fn prepend(inout self, owned val: T):
         var tmp = self
         self = LinkedList[T](val)
-        self.concat(tmp)
+        self.append(tmp)
 
     fn insert(inout self, idx: Int, val: T):
         debug_assert(0 == idx or (0 <= idx and self.tail), 'index out of bounds')
         if idx == 0:
             var tmp = self
             self = LinkedList[T](val)
-            self.concat(tmp)
+            self.append(tmp)
         else:
             self.tail[].insert(idx-1, val)  
 
-    fn delete_idx(inout self, idx: Int):
+    fn remove(inout self, idx: Int):
         debug_assert(0 <= idx and self.tail, 'index out of bounds')
         if idx == 0:
             self.head = self.tail[].head
             self.tail = self.tail[].tail
         else:
-            self.tail[0].delete_idx(idx-1)
+            self.tail[0].remove(idx-1)
 
     fn delete_first_instance(inout self, val: T):
         if not self.tail:
