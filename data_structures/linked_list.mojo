@@ -175,6 +175,14 @@ struct LinkedListArray[T:FormattableCollectionElement]:
             node = self.list[node][self.next] 
         writer.write(']')
 
+    fn has(self, val: T) -> Bool:
+        var next = self.start
+        for _ in range(self.length):
+            if self.list[next][self.val] == val:
+                return True
+            next = self.list[next][self.next]
+        return False
+
     fn reverse(mut self):
         var next_node = self.list[self.start][self.next]
         var prior = self.start
@@ -287,17 +295,53 @@ struct LinkedListArray[T:FormattableCollectionElement]:
         self.length += -1
         return self.list[popped][self.val]
     
+    fn delete_first_instance(inout self, val: T):
+        var node = self.start
+        var last = self.start
+        if self.list[self.start][self.val] == val:
+            self.next_free.append(self.start)
+            self.start = self.list[self.start][self.next]
+            self.length += -1
+            return
+        for _ in range(self.length - 1):
+            last = node
+            node = self.list[node][self.next]
+            if self.list[node][self.val] == val:
+                self.next_free.append(node)
+                self.list[last][self.next] = self.list[node][self.next]
+                self.length += - 1
+                return
+    
+    fn delete_all(inout self, val: T):
+        var node = self.start
+        var last = self.start
+        if self.list[self.start][self.val] == val:
+            self.next_free.append(self.start)
+            self.start = self.list[self.start][self.next]
+            self.length += -1
+        last = node
+        for _ in range(self.length - 1):
+            node = self.list[node][self.next]
+            if self.list[node][self.val] == val:
+                self.next_free.append(node)
+                self.list[last][self.next] = self.list[node][self.next]
+                self.length += - 1
+                print('idx:', node)
+            else:
+                last = node
 
-        
 
-           
 
 def main():
     var b = LinkedListArray[Int]()
     b.prepend(7)
     b.prepend(6)
     b.prepend(5)
+    b.prepend(7)
+    b.prepend(7)
+    b.prepend(7)
     b.prepend(4)
+    b.prepend(7)
     print('b:', b)
     var a = LinkedListArray[Int]()
     a.prepend(3)
@@ -309,6 +353,14 @@ def main():
     print('a.app(b):', a)
     a.reverse()
     print('a.rev():', a)
+    a.delete_first_instance(7)
+    print('a.dfi(7):', a)
+    for x in a.list:
+        print(x[][0],',',x[][1])
+    a.delete_all(7)
+    print('a.da(7):', a)
+    for x in a.list:
+        print(x[][0],',',x[][1])
     # a.insert(7,2)
     # print(a)
 
