@@ -156,6 +156,17 @@ struct LinkedListArray[T:FormattableCollectionElement]:
         self.start = 0
         self.length = 0
         self.next_free = List[Int]()
+    
+    fn __init__(out self, owned *values: T):
+        self.list = List[(T, Int)](capacity = len(values))
+        self.start = 0
+        self.length = len(values)
+        self.next_free = List[Int]()
+
+        for v in range(len(values)-1):
+            self.list.append((values[v],v+1))
+        self.list.append((values[len(values)-1],-1))
+            
 
     fn __getitem__(ref self, idx: Int) -> ref[self.list] T:
         debug_assert(0 <= idx < self.length, 'index out of bounds')
@@ -170,9 +181,10 @@ struct LinkedListArray[T:FormattableCollectionElement]:
     fn write_to[W: Writer](self, mut writer: W):
         writer.write('[')
         var node = self.start
-        for _ in range(self.length):
+        for _ in range(self.length-1):
             writer.write(self.list[node][self.val], ',')
             node = self.list[node][self.next] 
+        writer.write(self.list[node][self.val])
         writer.write(']')
 
     fn has(self, val: T) -> Bool:
@@ -332,21 +344,9 @@ struct LinkedListArray[T:FormattableCollectionElement]:
 
 
 def main():
-    var b = LinkedListArray[Int]()
-    b.prepend(7)
-    b.prepend(6)
-    b.prepend(5)
-    b.prepend(7)
-    b.prepend(7)
-    b.prepend(7)
-    b.prepend(4)
-    b.prepend(7)
+    var b = LinkedListArray[Int](7,4,7,7,7,5,6,7)
     print('b:', b)
-    var a = LinkedListArray[Int]()
-    a.prepend(3)
-    a.prepend(2)
-    a.prepend(1)
-    a.prepend(0)
+    var a = LinkedListArray[Int](0,1,2,3)
     print('a:',a)
     a.append(b^)
     print('a.app(b):', a)
@@ -354,28 +354,5 @@ def main():
     print('a.rev():', a)
     a.delete_first_instance(7)
     print('a.dfi(7):', a)
-    for x in a.list:
-        print(x[][0],',',x[][1])
     a.delete_all(7)
     print('a.da(7):', a)
-    for x in a.list:
-        print(x[][0],',',x[][1])
-    # a.insert(7,2)
-    # print(a)
-
-    # print(a[2])
-    # print(len(a.list))
-    # a.append(15)
-    # print(a)
-    # _ = a.pop_head()
-    # print(a)
-    # a.prepend(-2)
-    # print(a)
-    # b = a.pop_end()
-    # print('b:', b)
-    # print(a)
-    # a.append(23)
-    # print(a)
-    # print(a.remove(2))
-    # print(a)
-
