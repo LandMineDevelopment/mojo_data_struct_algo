@@ -22,7 +22,11 @@ struct LinkedList[T: FormattableCollectionElement]:
         self.tail.init_pointee_move(LinkedList[T]())
         self.head = head
         print('init:', head)
-
+        
+    fn __init__(out self, head: Optional[T]):
+        self.tail = UnsafePointer[LinkedList[T]].alloc(1)
+        self.tail.init_pointee_move(LinkedList[T]())
+        self.head = head
 
     fn __del__(owned self):
         if self.tail:
@@ -58,6 +62,12 @@ struct LinkedList[T: FormattableCollectionElement]:
             else:
                 writer.write(', ', 'None')
         writer.write(']')
+
+    fn reverse(mut self):
+        var tmp = self.pop_head()
+        self.reverse()
+        tmp.prepend(self)
+        self = tmp^
     
     fn append(mut self, owned val: LinkedList[T]):
         if not self.tail:
@@ -67,7 +77,7 @@ struct LinkedList[T: FormattableCollectionElement]:
         else:
             self.tail[].append(val^)
 
-    fn append(inout self, owned val: T):
+    fn append(mut self, owned val: T):
         if not self.tail:
             self.tail = UnsafePointer[LinkedList[T]].alloc(1)
             self.tail.init_pointee_move(LinkedList[T](val))
@@ -76,19 +86,45 @@ struct LinkedList[T: FormattableCollectionElement]:
         else:
             self.tail[].append(val)
     
-    fn prepend(inout self, owned val: T):
-        var tmp = self
+    fn prepend(mut self, owned val: LinkedList[T]):
+        var tmp = self^
+        self = val^
+        self.append(tmp^)
+    
+    fn prepend(mut self, owned val: T):
+        var tmp = self^
         self = LinkedList[T](val)
-        self.append(tmp)
+        self.append(tmp^)
 
-    fn insert(inout self, idx: Int, val: T):
+    fn insert(mut self, idx: Int, val: T):
         debug_assert(0 == idx or (0 <= idx and self.tail), 'index out of bounds')
         if idx == 0:
             var tmp = self
             self = LinkedList[T](val)
             self.append(tmp)
         else:
-            self.tail[].insert(idx-1, val)  
+            self.tail[].insert(idx-1, val) 
+
+    fn pop_head(mut self) -> LinkedList[T]:
+        if not self.head:
+            return LinkedList[T]()
+        
+        var tmp = LinkedList[T](self.head)
+        
+        if self.tail:
+            self = self.tail[]
+        else:
+            self = LinkedList[T]()
+        
+        return tmp^ 
+
+    # fn pop_end(mut self) -> LinkedList[T]:
+    #     if not self.tail and self.head:
+    #         var tmp = self
+
+
+    #     if not self.tail and not self.head:
+    #         return LinkedList[T]()       
 
     fn remove(inout self, idx: Int):
         debug_assert(0 <= idx and self.tail, 'index out of bounds')
