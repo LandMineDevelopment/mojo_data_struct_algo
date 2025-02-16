@@ -1,9 +1,9 @@
 from collections import Optional
 from memory import UnsafePointer
-from collections import Deque
 
 
-trait FormattableCollectionElement(Writable, StringableCollectionElement, EqualityComparable):
+
+trait FormattableCollectionElement(Writable, WritableCollectionElement, EqualityComparable):
     ...
 
 @value
@@ -18,15 +18,29 @@ struct LinkedList[T: FormattableCollectionElement]:
         
     
     fn __init__(out self, head: T):
-        self.tail = UnsafePointer[LinkedList[T]].alloc(1)
-        self.tail.init_pointee_move(LinkedList[T]())
+        self.tail = UnsafePointer[LinkedList[T]]()
         self.head = head
         print('init:', head)
+
+    #TODO
+    # fn __init__(out self, owned *values: T):
+    #     self.head = Optional[T](values[0])
+    #     if len(values) > 1:
+    #         self.tail = UnsafePointer[LinkedList[T]].alloc(1)
+    #         self.tail.init_pointee_move(LinkedList[T](values[]))
+    #     else:
+    #         self.tail = UnsafePointer[LinkedList[T]]()
         
     fn __init__(out self, head: Optional[T]):
-        self.tail = UnsafePointer[LinkedList[T]].alloc(1)
-        self.tail.init_pointee_move(LinkedList[T]())
+        self.tail = UnsafePointer[LinkedList[T]]()
         self.head = head
+        print('init opt:', head.value())
+    
+    fn __init__(out self, head: T, owned tail: LinkedList[T]):
+        self.tail = UnsafePointer[LinkedList[T]].alloc(1)
+        self.tail.init_pointee_move(tail^)
+        self.head = Optional(head)
+        print('init head:', head,', tail:')
 
     fn __del__(owned self):
         if self.tail:
@@ -63,16 +77,24 @@ struct LinkedList[T: FormattableCollectionElement]:
                 writer.write(', ', 'None')
         writer.write(']')
 
-    fn reverse(mut self):
-        var tmp = self.pop_head()
-        self.reverse()
-        tmp.prepend(self)
+    fn reverse(mut self): 
+        var tmp: LinkedList[T]
+        if self.tail:
+            tmp = self.pop_head() 
+        else:
+            tmp = LinkedList[T]()
+
+        while self.tail:
+            var val = self.pop_head()
+            print('head:', val)
+            tmp.prepend(val^) 
+        tmp.prepend(LinkedList[T](self.head))
+        
         self = tmp^
-    
+
     fn append(mut self, owned val: LinkedList[T]):
         if not self.tail:
-            return
-        if not self.tail[][0]:
+            self.tail = UnsafePointer[LinkedList[T]].alloc(1)
             self.tail.init_pointee_move(val^)
         else:
             self.tail[].append(val^)
@@ -87,14 +109,11 @@ struct LinkedList[T: FormattableCollectionElement]:
             self.tail[].append(val)
     
     fn prepend(mut self, owned val: LinkedList[T]):
-        var tmp = self^
+        val.append(self)
         self = val^
-        self.append(tmp^)
     
     fn prepend(mut self, owned val: T):
-        var tmp = self^
-        self = LinkedList[T](val)
-        self.append(tmp^)
+        self = LinkedList[T](val, self)
 
     fn insert(mut self, idx: Int, val: T):
         debug_assert(0 == idx or (0 <= idx and self.tail), 'index out of bounds')
@@ -106,27 +125,32 @@ struct LinkedList[T: FormattableCollectionElement]:
             self.tail[].insert(idx-1, val) 
 
     fn pop_head(mut self) -> LinkedList[T]:
-        if not self.head:
-            return LinkedList[T]()
+        if not self.tail:
+            return self
         
         var tmp = LinkedList[T](self.head)
         
         if self.tail:
-            self = self.tail[]
+            self.head = self.tail[].head
+            self.tail = self.tail[].tail
         else:
-            self = LinkedList[T]()
+            self.head = Optional[T](None)
         
         return tmp^ 
 
-    # fn pop_end(mut self) -> LinkedList[T]:
-    #     if not self.tail and self.head:
-    #         var tmp = self
+    fn pop_end(mut self) -> LinkedList[T]:
+        if not self.tail:
+            self.head = Optional[T](None)
+            return LinkedList[T]()
+        elif not self.tail[].tail:
+            var tmp = self.tail[]
+            self.tail = UnsafePointer[LinkedList[T]]()
+            return tmp
+        else:
+            return self.tail[].pop_end()
+    
 
-
-    #     if not self.tail and not self.head:
-    #         return LinkedList[T]()       
-
-    fn remove(inout self, idx: Int):
+    fn remove(mut self, idx: Int):
         debug_assert(0 <= idx and self.tail, 'index out of bounds')
         if idx == 0:
             self.head = self.tail[].head
@@ -134,7 +158,7 @@ struct LinkedList[T: FormattableCollectionElement]:
         else:
             self.tail[0].remove(idx-1)
 
-    fn delete_first_instance(inout self, val: T):
+    fn delete_first_instance(mut self, val: T):
         if not self.tail:
             return
         if self.head and self.head.value() == val:
@@ -147,7 +171,7 @@ struct LinkedList[T: FormattableCollectionElement]:
 
         self.tail[].delete_all_instance(val)
     
-    fn delete_all_instance(inout self, val: T):
+    fn delete_all_instance(mut self, val: T):
         if not self.tail:
             return
         if self.head and self.head.value() == val:
@@ -343,7 +367,7 @@ struct LinkedListArray[T:FormattableCollectionElement]:
         self.length += -1
         return self.list[popped][self.val]
     
-    fn delete_first_instance(inout self, val: T):
+    fn delete_first_instance(mut self, val: T):
         var node = self.start
         var last = self.start
         if self.list[self.start][self.val] == val:
@@ -360,7 +384,7 @@ struct LinkedListArray[T:FormattableCollectionElement]:
                 self.length += - 1
                 return
     
-    fn delete_all(inout self, val: T):
+    fn delete_all(mut self, val: T):
         var node = self.start
         var last = self.start
         if self.list[self.start][self.val] == val:
@@ -380,15 +404,35 @@ struct LinkedListArray[T:FormattableCollectionElement]:
 
 
 def main():
-    var b = LinkedListArray[Int](7,4,7,7,7,5,6,7)
-    print('b:', b)
-    var a = LinkedListArray[Int](0,1,2,3)
-    print('a:',a)
-    a.append(b^)
-    print('a.app(b):', a)
-    a.reverse()
-    print('a.rev():', a)
-    a.delete_first_instance(7)
-    print('a.dfi(7):', a)
-    a.delete_all(7)
-    print('a.da(7):', a)
+    # var b = LinkedListArray[Int](7,4,7,7,7,5,6,7)
+    # print('b:', b)
+    # var a = LinkedListArray[Int](0,1,2,3)
+    # print('a:',a)
+    # a.append(b^)
+    # print('a.app(b):', a)
+    # a.reverse()
+    # print('a.rev():', a)
+    # a.delete_first_instance(7)
+    # print('a.dfi(7):', a)
+    # a.delete_all(7)
+    # print('a.da(7):', a)
+
+    var a = LinkedList[Int](0)
+    a.append(1)
+    a.append(2)
+    a.append(3)
+    a.prepend(-1)
+    print(a)
+    var b = LinkedList[Int](4)
+    b.append(5)
+    b.append(6)
+    b.append(7)
+    print(b)
+    b.reverse()
+    # print(b.pop_head())
+    print(b)
+    b.prepend(a^)
+    print(b)
+    print(b.pop_end())
+    print(b)
+    # _ = b^
