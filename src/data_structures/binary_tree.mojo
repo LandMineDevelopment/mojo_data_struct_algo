@@ -5,7 +5,7 @@ from bit import is_power_of_two
 
 
 trait FormattableCollectionElement(
-    Writable, StringableCollectionElement, EqualityComparable, Comparable
+    Writable, WritableCollectionElement, EqualityComparable, Comparable
     ):
     ...
 
@@ -32,7 +32,7 @@ struct BinaryTree[T: FormattableCollectionElement]:
         self.name = name
     
     fn __init__(
-        inout self, root: T, name: String, *, owned left: BinaryTree[T], owned right: BinaryTree[T]
+        mut self, root: T, name: String, *, owned left: BinaryTree[T], owned right: BinaryTree[T]
         ):
         self.root = Optional[T](None)
         self.left = UnsafePointer[BinaryTree[T]].alloc(1)
@@ -42,7 +42,7 @@ struct BinaryTree[T: FormattableCollectionElement]:
         self.name = name
 
     fn __bool__(self) -> Bool:
-        return bool(self.root) 
+        return Bool(self.root) 
     
     fn __str__(self) -> String:
         return String.write(self)
@@ -68,7 +68,7 @@ struct BinaryTree[T: FormattableCollectionElement]:
     
     fn get_print_array(self) -> List[List[Optional[T]]]:
         if not self.root:
-            return List[List[Optional[T]]](Optional[T](None))
+            return List[List[Optional[T]]]()
         var left = List[List[Optional[T]]]()
         var right = List[List[Optional[T]]]()
         if self.has_left():
@@ -129,7 +129,7 @@ struct BinaryTree[T: FormattableCollectionElement]:
         
 
    
-    fn insert(inout self, val: T):
+    fn insert(mut self, val: T):
         if not self.root:
             self.root = Optional[T](val)
         elif self.root and val < self.root.value():
@@ -137,7 +137,7 @@ struct BinaryTree[T: FormattableCollectionElement]:
         else:
             self.right[].insert(val)
 
-    fn delete(inout self, val: T):
+    fn delete(mut self, val: T):
         
         # print('ho')
         if not self.root:
@@ -150,7 +150,7 @@ struct BinaryTree[T: FormattableCollectionElement]:
             # print('hi')
             self.root = self._delete_replace(first = True)
 
-    fn _delete_replace(inout self, first: Bool) -> Optional[T]:
+    fn _delete_replace(mut self, first: Bool) -> Optional[T]:
         # print('hi')
         if self.is_child_less():
             ret = self.root
@@ -268,41 +268,21 @@ struct BinaryTreeArray[T: FormattableCollectionElement](Writable):
                 if idx == null: return
 
 
-from utils import Variant
-trait Updateable:
-    fn update(self): ...    
 
-@value
-struct A(Updateable):
-    fn update(self):
-        print('A')
-
-@value
-struct B(Updateable):
-    fn update(self):
-        print('B')
-
-fn update_it[U: Updateable](item: U):
-    item.update()
-
-fn update_all(lst: List[Variant[A,B]]):
-    for e in lst:
-        if e[].isa[A]():
-            update_it(e[][A])
 
 
 def main():
-    # var a = BinaryTreeArray[Int]()
-    # # a.insert(List(5,3,2,7,6))
-    # a.insert(List(5,3,2,1,0,8,7,6))
+    var a = BinaryTreeArray[Int]()
+    # a.insert(List(5,3,2,7,6))
+    a.insert(List(5,3,2,1,0,8,7,6))
 
-    # print(a)
-    # for x in a.tree:
-    #     print('val:', x[][node_val],',','left:',x[][left],', right:', x[][right])
+    print(a)
+    for x in a.tree:
+        print('val:', x[][node_val],',','left:',x[][left],', right:', x[][right])
 
-    a = A()
-    b = B()
-    l = List[Variant[A,B]](a,b)
-    update_all(l)
+    # a = A()
+    # b = B()
+    # l = List[Variant[A,B]](a,b)
+    # update_all(l)
 
     

@@ -14,13 +14,13 @@ struct LinkedList[T: FormattableCollectionElement]:
     fn __init__(out self):
         self.tail = UnsafePointer[LinkedList[T]]()
         self.head = Optional[T](None)
-        print('init empty')
+        # print('init empty')
         
     
     fn __init__(out self, head: T):
         self.tail = UnsafePointer[LinkedList[T]]()
         self.head = head
-        print('init:', head)
+        # print('init:', head)
 
     #TODO
     # fn __init__(out self, owned *values: T):
@@ -34,19 +34,19 @@ struct LinkedList[T: FormattableCollectionElement]:
     fn __init__(out self, head: Optional[T]):
         self.tail = UnsafePointer[LinkedList[T]]()
         self.head = head
-        print('init opt:', head.value())
+        # print('init opt:', head.value())
     
     fn __init__(out self, head: T, owned tail: LinkedList[T]):
         self.tail = UnsafePointer[LinkedList[T]].alloc(1)
         self.tail.init_pointee_move(tail^)
         self.head = Optional(head)
-        print('init head:', head,', tail:')
+        # print('init head:', head,', tail:')
 
     fn __del__(owned self):
         if self.tail:
             self.tail.destroy_pointee()
         self.tail.free()
-        if self.head: print('del',self.head.value()) else: print('del: none')
+        # if self.head: print('del',self.head.value()) else: print('del: none')
     
     fn __len__(self) -> Int:
         if not self.tail:
@@ -403,7 +403,9 @@ struct LinkedListArray[T:FormattableCollectionElement]:
 
 
 
-def main():
+# def main():
+#     from time import monotonic
+    
     # var b = LinkedListArray[Int](7,4,7,7,7,5,6,7)
     # print('b:', b)
     # var a = LinkedListArray[Int](0,1,2,3)
@@ -416,23 +418,38 @@ def main():
     # print('a.dfi(7):', a)
     # a.delete_all(7)
     # print('a.da(7):', a)
+    # print('start')
+  
 
-    var a = LinkedList[Int](0)
-    a.append(1)
-    a.append(2)
-    a.append(3)
-    a.prepend(-1)
-    print(a)
-    var b = LinkedList[Int](4)
-    b.append(5)
-    b.append(6)
-    b.append(7)
-    print(b)
-    b.reverse()
-    # print(b.pop_head())
-    print(b)
-    b.prepend(a^)
-    print(b)
-    print(b.pop_end())
-    print(b)
-    # _ = b^
+
+    # var a = LinkedList[Int](0)
+    # a.append(1)
+    # a.append(2)
+    # a.append(3)
+    # a.prepend(-1)
+    # print(a)
+    # var b = LinkedList[Int](4)
+    # b.append(5)
+    # b.append(6)
+    # b.append(7)
+    # print(b)
+    # b.reverse()
+    # # print(b.pop_head())
+    # print(b)
+    # b.prepend(a^)
+    # print(b)
+    # print(b.pop_end())
+    # print(b)
+    # # _ = b^
+
+
+
+    # # a = LinkedListArray[Int]()
+    # a = LinkedList[Int]()
+    # var start = monotonic()
+    # print('start')
+    # for i in range(100_000):
+    #     a.prepend(i)
+    # for _ in range(100_000):
+    #     _ = a.pop_head()
+    # print('time:', (monotonic()- start)/1_000_000_000)
