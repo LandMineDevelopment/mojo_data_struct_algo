@@ -22,15 +22,20 @@ struct LinkedList[T: FormattableCollectionElement]:
         self.head = head
         # print('init:', head)
 
-    #TODO
-    # fn __init__(out self, owned *values: T):
-    #     self.head = Optional[T](values[0])
-    #     if len(values) > 1:
-    #         self.tail = UnsafePointer[LinkedList[T]].alloc(1)
-    #         self.tail.init_pointee_move(LinkedList[T](values[]))
-    #     else:
-    #         self.tail = UnsafePointer[LinkedList[T]]()
-        
+    fn __init__(out self, owned *values: T):
+        self.head = Optional[T](values[0])
+        self.tail = UnsafePointer[LinkedList[T]].alloc(1)
+        # print('init:', values[0])
+
+        var curr = UnsafePointer.address_of(self.tail[])
+        for i in range(1,len(values)-1):
+            curr.init_pointee_move(LinkedList[T](values[i]))
+            curr[].tail = UnsafePointer[LinkedList[T]].alloc(1)
+            curr = UnsafePointer.address_of(curr[].tail[])
+
+        curr.init_pointee_move(LinkedList[T](values[len(values)-1]))
+
+                
     fn __init__(out self, head: Optional[T]):
         self.tail = UnsafePointer[LinkedList[T]]()
         self.head = head
@@ -45,7 +50,7 @@ struct LinkedList[T: FormattableCollectionElement]:
     fn __del__(owned self):
         if self.tail:
             self.tail.destroy_pointee()
-        self.tail.free()
+            self.tail.free()
         # if self.head: print('del',self.head.value()) else: print('del: none')
     
     fn __len__(self) -> Int:
@@ -403,8 +408,8 @@ struct LinkedListArray[T:FormattableCollectionElement]:
 
 
 
-# def main():
-#     from time import monotonic
+def main():
+    from time import monotonic
     
     # var b = LinkedListArray[Int](7,4,7,7,7,5,6,7)
     # print('b:', b)
@@ -421,7 +426,8 @@ struct LinkedListArray[T:FormattableCollectionElement]:
     # print('start')
   
 
-
+    var c = LinkedList[Int](2,3,4,5)
+    print(c)
     # var a = LinkedList[Int](0)
     # a.append(1)
     # a.append(2)
