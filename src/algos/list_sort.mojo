@@ -70,6 +70,31 @@ fn merge_sort(mut lst: List[Int], start: Int, end: Int):
     merge_inplace(lst,end,start, (end-start)//2 + start +1)
     # print_lst(lst)
 
+
+#######helper funcitons for testing
+from random import random_si64
+fn random_sorted_list(length: Int, max: Int) -> List[Int]:
+    ret = List[Int](capacity = length)
+    for _ in range(length):
+        ret.append(Int(random_si64(0,max)))
+
+    bucket_sort(ret)
+    return ret
+    
+fn random_list(length: Int, max: Int) -> List[Int]:
+    ret = List[Int](capacity = length)
+    for _ in range(length):
+        ret.append(Int(random_si64(0,max)))
+
+    # bucket_sort(ret)
+    return ret
+
+
+fn check_sort(lst: List[Int]) -> Bool:
+    var last = lst[0]
+    for e in lst:
+       if e[] < last: return False 
+    return True 
 fn print_lst[C: W_Comp_Coll](lst: List[C]):
     var s = String('[')
     for i in range(len(lst)-1):
