@@ -94,6 +94,7 @@ fn check_sort(lst: List[Int]) -> Bool:
     var last = lst[0]
     for e in lst:
        if e[] < last: return False 
+       last = e[]
     return True 
 fn print_lst[C: W_Comp_Coll](lst: List[C]):
     var s = String('[')
