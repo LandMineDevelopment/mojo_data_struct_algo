@@ -13,6 +13,41 @@ fn quick_sort[C: W_Comp_Coll](lst: List[C]) -> List[C]:
             right.append(lst[i])
     return quick_sort(left) + List[C](lst[0]) + quick_sort(right)
 
+fn quick_sort2[C: W_Comp_Coll](mut lst: List[C]):
+    alias start = 0
+    alias end = 1
+    var stack = List[(Int,Int)](capacity=len(lst))
+    stack.append((0,len(lst)-1))
+    # print_lst(lst)
+    var tmp = lst
+    while len(stack) > 0:
+        var bounds = stack.pop()
+        var piv = bounds[start]
+        var left = bounds[start]
+        var right = bounds[end]
+        for i in range(left,right+1):
+            tmp[i] = lst[i]
+        # print(left,right)
+        for i in range(bounds[start],bounds[end] + 1):
+            if tmp[i] <= tmp[piv]:
+                lst[left] = tmp[i]
+                left += 1
+            else:
+                lst[right] = tmp[i]
+                right += -1
+        
+        left += -1
+        right += 1
+        
+        var tmp_elem = lst[piv]
+        if bounds[start] < left: 
+            lst[piv] = lst[left] 
+            lst[left] = tmp_elem
+            stack.append((bounds[start],left-1))
+        if right < bounds[end]:
+            stack.append((right,bounds[end]))
+        # print_lst(lst)
+
 fn bucket_sort(mut lst: List[Int]):
     if len(lst) == 0 or len(lst) == 1: return
     var max = lst[0]
@@ -37,8 +72,11 @@ fn bucket_sort(mut lst: List[Int]):
 
 fn merge_inplace(mut a: List[Int], end: Int, owned a_small: Int, owned b_small: Int):
     var tmp: Int
+    var b_start = b_small
     for curr in range(a_small, end+1):
-        if a_small < curr: a_small = curr
+        # print('a,b,i', a_small,b_small,curr)
+        # print_lst(a)
+        if a_small < curr: a_small = curr 
         if a_small == b_small: return
 
         if a[b_small] < a[curr] and a[b_small] < a[a_small] and b_small < end+1:
@@ -46,7 +84,8 @@ fn merge_inplace(mut a: List[Int], end: Int, owned a_small: Int, owned b_small: 
             a[b_small] = a[curr]
             a[curr] = tmp
             if a_small == curr: a_small = b_small
-            b_small += 1 
+            b_small += 1
+
         
         elif a[a_small] < a[curr]:
             tmp = a[a_small]
@@ -54,6 +93,13 @@ fn merge_inplace(mut a: List[Int], end: Int, owned a_small: Int, owned b_small: 
             a[curr] = tmp
             if b_small - a_small > 1:
                 a_small += 1
+            elif b_start > curr:
+                a_small = b_start
+            else:
+                a_small = curr
+        # elif a[a_small] > a[curr]:
+
+    # print_lst(a)
 
 fn merge_sort(mut lst: List[Int]):
     merge_sort(lst,0,len(lst)-1)
@@ -62,11 +108,11 @@ fn merge_sort(mut lst: List[Int], start: Int, end: Int):
     if start >= end:
         # print('same:', start)
         return
-    # print('s,e:',start,(end-start)//2 + start)
+    # print('s,h,e:',start,(end-start)//2 + start,end)
     # print_lst(lst)
     merge_sort(lst,start,(end-start)//2 + start)
     merge_sort(lst,(end-start)//2 + start + 1, end)
-    # print('merge:', start,(end-start)//2 + start, end)
+    # print('merge:', start,(end-start)//2 + start +1, end)
     merge_inplace(lst,end,start, (end-start)//2 + start +1)
     # print_lst(lst)
 
